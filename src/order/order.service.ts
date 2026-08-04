@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +14,16 @@ import { Address } from 'src/address/entities/address.entity';
 import { Cart } from 'src/cart/entities/cart.entity';
 
 import { CreateOrderDto } from './dto/order.dto';
+import { MailService } from 'src/mail/mail.service';
+
+import { OrderStatus } from 'src/enum';
+
+import { UpdateOrderStatusDto } from './dto/order.dto';
+
+import { Product } from 'src/product/entities/product.entity';
+import { DefaultStatus } from 'src/enum';
+
+
 
 @Injectable()
 export class OrderService {
@@ -31,6 +42,11 @@ export class OrderService {
 
     @InjectRepository(Cart)
     private readonly cartRepo: Repository<Cart>,
+
+    private readonly mailService: MailService,
+
+    @InjectRepository(Product)
+    private readonly productRepo: Repository<Product>,
   ) {}
 
   async create(dto: CreateOrderDto, accountId: string) {
@@ -70,15 +86,27 @@ export class OrderService {
     let totalAmount = 0;
 
     for (const cart of carts) {
-      totalAmount += cart.product.price * cart.quantity;
-    }
+  if (cart.product.status !== DefaultStatus.ACTIVE) {
+    throw new BadRequestException(
+      `${cart.product.name} is no longer available.`,
+    );
+  }
+
+  if (cart.quantity > cart.product.stock) {
+    throw new BadRequestException(
+      `${cart.product.name} has only ${cart.product.stock} item(s) left in stock.`,
+    );
+  }
+
+  totalAmount += cart.product.price * cart.quantity;
+}
 
     const order = this.orderRepo.create({
-      account,
-      address,
-      totalAmount,
-      status: 'PENDING',
-    });
+  account,
+  address,
+  totalAmount,
+  status: OrderStatus.PENDING,
+});
 
     const savedOrder = await this.orderRepo.save(order);
 
@@ -91,14 +119,47 @@ export class OrderService {
       });
 
       await this.orderItemRepo.save(item);
+
+cart.product.stock -= cart.quantity;
+
+if (cart.product.stock === 0) {
+  cart.product.status = DefaultStatus.INACTIVE;
+}
+
+await this.productRepo.save(cart.product);
     }
+
+    let productHtml = '';
+
+for (const cart of carts) {
+  productHtml += `
+    <p>
+      <b>${cart.product.name}</b><br>
+      Quantity: ${cart.quantity}<br>
+      Price: ₹${cart.product.price}
+    </p>
+    <hr>
+  `;
+}
 
     await this.cartRepo.remove(carts);
 
-    return {
-      message: 'Order placed successfully',
-      orderId: savedOrder.id,
-    };
+try {
+  await this.mailService.sendOrderConfirmationEmail(
+    account.fullName,
+    account.email,
+    savedOrder.id,
+    totalAmount,
+     productHtml,
+  );
+} catch (error) {
+  console.log('Order email failed:', error);
+}
+
+return {
+  message: 'Order placed successfully',
+  orderId: savedOrder.id,
+};
   }
 
   async findAll(accountId: string) {
@@ -147,4 +208,68 @@ export class OrderService {
       items,
     };
   }
+
+
+async updateStatus(
+  id: string,
+  dto: UpdateOrderStatusDto,
+) {
+  const order = await this.orderRepo.findOne({
+    where: { id },
+    relations: {
+      account: true,
+    },
+  });
+
+  if (!order) {
+    throw new NotFoundException('Order not found!');
+  }
+
+  const validTransitions: Record<
+    OrderStatus,
+    OrderStatus[]
+  > = {
+    [OrderStatus.PENDING]: [
+      OrderStatus.CONFIRMED,
+      OrderStatus.CANCELLED,
+    ],
+
+    [OrderStatus.CONFIRMED]: [
+      OrderStatus.SHIPPED,
+      OrderStatus.CANCELLED,
+    ],
+
+    [OrderStatus.SHIPPED]: [
+      OrderStatus.DELIVERED,
+    ],
+
+    [OrderStatus.DELIVERED]: [],
+
+    [OrderStatus.CANCELLED]: [],
+  };
+
+  const allowed = validTransitions[order.status];
+
+  if (!allowed.includes(dto.status)) {
+    throw new BadRequestException(
+      `Cannot change order status from ${order.status} to ${dto.status}`,
+    );
+  }
+
+  order.status = dto.status;
+
+  await this.orderRepo.save(order);
+
+  await this.mailService.sendOrderStatusEmail(
+  order.account.fullName,
+  order.account.email,
+  order.id,
+  order.status,
+);
+
+  return {
+    message: 'Order status updated successfully',
+    status: order.status,
+  };
+}
 }

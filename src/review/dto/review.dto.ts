@@ -22,6 +22,10 @@ export class CreateReviewDto {
   @IsOptional()
   @IsString()
   review?: string;
+
+  @IsOptional()
+@IsString()
+image?: string;
 }
 
 export class UpdateReviewDto {
@@ -35,4 +39,8 @@ export class UpdateReviewDto {
   @IsOptional()
   @IsString()
   review?: string;
+
+  @IsOptional()
+@IsString()
+image?: string;
 }

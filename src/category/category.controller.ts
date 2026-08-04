@@ -29,6 +29,22 @@ import { PermissionAction, UserRole } from 'src/enum';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+import {
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+
+import {
+  ApiBody,
+  ApiConsumes,
+} from '@nestjs/swagger';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+
+import { multerOptions } from 'src/common/upload/upload.config';
+
+import { CreateCategoryWithImageDto } from './dto/create-category-with-image.dto';
+
 
 @ApiTags('Category')
 @ApiBearerAuth()
@@ -38,22 +54,31 @@ export class CategoryController {
     private readonly categoryService: CategoryService,
   ) {}
 
-  @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles(UserRole.ADMIN)
-  @CheckPermissions([PermissionAction.CREATE, 'category'])
-  create(
-    @Body() dto: CreateCategoryDto,
-    @GetUser('id') userId: string,
-  ) {
-    return this.categoryService.create(dto, userId);
+@Post()
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@Roles(UserRole.ADMIN)
+@CheckPermissions([PermissionAction.CREATE, 'category'])
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  type: CreateCategoryWithImageDto,
+})
+@UseInterceptors(
+  FileInterceptor(
+    'image',
+    multerOptions('category'),
+  ),
+)
+create(
+  @UploadedFile() file: Express.Multer.File,
+  @Body() dto: CreateCategoryDto,
+  @GetUser('id') userId: string,
+) {
+  if (file) {
+    dto.image = `http://localhost:3000/uploads/category/${file.filename}`;
   }
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  find(@Query() dto: PaginationDto) {
-    return this.categoryService.find(dto);
-  }
+  return this.categoryService.create(dto, userId);
+}
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)

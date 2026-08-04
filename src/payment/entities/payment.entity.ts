@@ -1,4 +1,6 @@
 import { Order } from 'src/order/entities/order.entity';
+import { PaymentStatus } from 'src/enum';
+
 import {
   Column,
   CreateDateColumn,
@@ -45,9 +47,11 @@ export class Payment {
   currency: string;
 
   @Column({
-    default: 'PENDING',
-  })
-  status: string;
+  type: 'enum',
+  enum: PaymentStatus,
+  default: PaymentStatus.PENDING,
+})
+status: PaymentStatus;
 
   @CreateDateColumn()
   createdAt: Date;

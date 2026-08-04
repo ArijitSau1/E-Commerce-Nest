@@ -1,10 +1,12 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { DefaultStatus } from 'src/enum';
 import { Cart } from './entities/cart.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { Account } from 'src/account/entities/account.entity';
@@ -35,6 +37,18 @@ export class CartService {
     if (!account) throw new NotFoundException('Account not found!');
     if (!product) throw new NotFoundException('Product not found!');
 
+    if (product.status !== DefaultStatus.ACTIVE) {
+  throw new BadRequestException(
+    'Product is no longer available.',
+  );
+}
+
+if (dto.quantity > product.stock) {
+  throw new BadRequestException(
+    `Only ${product.stock} item(s) available in stock.`,
+  );
+}
+
     let cart = await this.repo.findOne({
       where: {
         account: { id: accountId },
@@ -46,10 +60,19 @@ export class CartService {
       },
     });
 
-    if (cart) {
-      cart.quantity += dto.quantity;
-      return this.repo.save(cart);
-    }
+   if (cart) {
+  const totalQuantity = cart.quantity + dto.quantity;
+
+  if (totalQuantity > product.stock) {
+    throw new BadRequestException(
+      `Only ${product.stock} item(s) available in stock.`,
+    );
+  }
+
+  cart.quantity = totalQuantity;
+
+  return this.repo.save(cart);
+}
 
     cart = this.repo.create({
       account,

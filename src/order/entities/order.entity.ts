@@ -1,5 +1,7 @@
 import { Account } from 'src/account/entities/account.entity';
 import { Address } from 'src/address/entities/address.entity';
+import { OrderStatus } from 'src/enum';
+
 import {
   Column,
   CreateDateColumn,
@@ -30,9 +32,11 @@ export class Order {
   totalAmount: number;
 
   @Column({
-    default: 'PENDING',
-  })
-  status: string;
+  type: 'enum',
+  enum: OrderStatus,
+  default: OrderStatus.PENDING,
+})
+status: OrderStatus;
 
   @CreateDateColumn()
   createdAt: Date;

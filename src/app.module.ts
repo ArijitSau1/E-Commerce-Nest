@@ -18,6 +18,11 @@ import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
 import { ReviewModule } from './review/review.module';
 import { CouponModule } from './coupon/coupon.module';
+import { MailModule } from './mail/mail.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { DashboardModule } from './dashboard/dashboard.module';
+
 
 
 @Module({
@@ -25,6 +30,11 @@ import { CouponModule } from './coupon/coupon.module';
     ConfigModule.forRoot({
     isGlobal: true,
   }),
+
+  ServeStaticModule.forRoot({
+  rootPath: join(__dirname, '..', 'uploads'),
+  serveRoot: '/uploads',
+}),
 
   TypeOrmModule.forRoot({
     type: 'mysql',
@@ -56,7 +66,10 @@ import { CouponModule } from './coupon/coupon.module';
     OrderModule,
     PaymentModule,
     ReviewModule,
-    CouponModule,],
+    CouponModule,
+    MailModule,
+    DashboardModule,
+    ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -13,10 +13,13 @@ import { StringValue } from 'ms';
 import { UserPermission } from 'src/user-permission/entities/user-permission.entity';
 import { CaslAbilityFactory } from './factory/casl-ability.factory';
 import { PermissionsGuard } from './guards/permissions.guard';
+import { MailModule } from 'src/mail/mail.module';
+
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Account,UserPermission]),
+    MailModule,
 
     PassportModule.register({
       defaultStrategy: 'jwt',

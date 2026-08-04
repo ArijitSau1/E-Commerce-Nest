@@ -11,6 +11,8 @@ import * as crypto from 'crypto';
 import { Payment } from './entities/payment.entity';
 import { Order } from 'src/order/entities/order.entity';
 
+import { PaymentStatus, OrderStatus } from 'src/enum';
+
 import {
   CreatePaymentDto,
   VerifyPaymentDto,
@@ -55,7 +57,7 @@ export class PaymentService {
       razorpayOrderId: razorpayOrder.id,
       amount: Number(order.totalAmount),
       currency: razorpayOrder.currency,
-      status: 'PENDING',
+      status: PaymentStatus.PENDING,
     });
 
     await this.paymentRepo.save(payment);
@@ -96,9 +98,8 @@ export class PaymentService {
 
     payment.razorpayPaymentId = dto.razorpay_payment_id;
     payment.razorpaySignature = dto.razorpay_signature;
-    payment.status = 'SUCCESS';
-
-    payment.order.status = 'PAID';
+    payment.status = PaymentStatus.SUCCESS;
+    payment.order.status = OrderStatus.CONFIRMED;
 
     await this.orderRepo.save(payment.order);
     await this.paymentRepo.save(payment);

@@ -38,6 +38,11 @@ export class Review {
   })
   review: string;
 
+  @Column({
+  nullable: true,
+})
+image: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

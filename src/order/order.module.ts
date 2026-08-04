@@ -12,6 +12,7 @@ import { Address } from 'src/address/entities/address.entity';
 import { Cart } from 'src/cart/entities/cart.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuthModule } from 'src/auth/auth.module';
       Product,
     ]),
     AuthModule,
+    MailModule,
   ],
   controllers: [OrderController],
   providers: [OrderService],

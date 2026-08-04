@@ -56,12 +56,13 @@ export class ReviewService {
       throw new ConflictException('You already reviewed this product.');
     }
 
-    const review = this.reviewRepo.create({
-      rating: dto.rating,
-      review: dto.review,
-      account,
-      product,
-    });
+   const review = this.reviewRepo.create({
+  rating: dto.rating,
+  review: dto.review,
+  image: dto.image,
+  account,
+  product,
+});
 
     return this.reviewRepo.save(review);
   }

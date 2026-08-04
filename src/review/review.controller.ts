@@ -19,6 +19,24 @@ import {
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 
+
+import {
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+
+import {
+  ApiBody,
+  ApiConsumes,
+} from '@nestjs/swagger';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+
+import { multerOptions } from 'src/common/upload/upload.config';
+
+import { CreateReviewWithImageDto } from './dto/create-review-with-image.dto';
+
+
 @ApiTags('Review')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -29,12 +47,28 @@ export class ReviewController {
   ) {}
 
   @Post()
-  create(
-    @Body() dto: CreateReviewDto,
-    @GetUser('id') accountId: string,
-  ) {
-    return this.reviewService.create(dto, accountId);
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  type: CreateReviewWithImageDto,
+})
+@UseInterceptors(
+  FileInterceptor(
+    'image',
+    multerOptions('review'),
+  ),
+)
+create(
+  @UploadedFile() file: Express.Multer.File,
+  @Body() dto: CreateReviewDto,
+  @GetUser('id') accountId: string,
+) {
+  if (file) {
+    dto.image =
+  `http://localhost:3000/uploads/review/${file.filename}`;
   }
+
+  return this.reviewService.create(dto, accountId);
+}
 
   @Get('product/:id')
   findByProduct(

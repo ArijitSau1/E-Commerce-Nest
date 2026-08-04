@@ -30,6 +30,23 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 
 import { PermissionAction, UserRole } from 'src/enum';
 
+import {
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+
+import {
+  ApiBody,
+  ApiConsumes,
+} from '@nestjs/swagger';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+
+import { multerOptions } from 'src/common/upload/upload.config';
+
+import { CreateBrandWithImageDto } from './dto/create-brand-with-image.dto';
+
+
 @ApiTags('Brand')
 @ApiBearerAuth()
 @Controller('brand')
@@ -39,15 +56,30 @@ export class BrandController {
   ) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-  @Roles(UserRole.ADMIN)
-  @CheckPermissions([PermissionAction.CREATE, 'brand'])
-  create(
-    @Body() dto: CreateBrandDto,
-    @GetUser('id') userId: string,
-  ) {
-    return this.brandService.create(dto, userId);
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@Roles(UserRole.ADMIN)
+@CheckPermissions([PermissionAction.CREATE, 'brand'])
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  type: CreateBrandWithImageDto,
+})
+@UseInterceptors(
+  FileInterceptor(
+    'image',
+    multerOptions('brand'),
+  ),
+)
+create(
+  @UploadedFile() file: Express.Multer.File,
+  @Body() dto: CreateBrandDto,
+  @GetUser('id') userId: string,
+) {
+  if (file) {
+    dto.image = `http://localhost:3000/uploads/brand/${file.filename}`;
   }
+
+  return this.brandService.create(dto, userId);
+}
 
   @Get()
   @UseGuards(JwtAuthGuard)
