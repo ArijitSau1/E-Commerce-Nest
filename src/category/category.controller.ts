@@ -80,6 +80,12 @@ create(
   return this.categoryService.create(dto, userId);
 }
 
+@Get()
+@UseGuards(JwtAuthGuard)
+find(@Query() dto: PaginationDto) {
+  return this.categoryService.find(dto);
+}
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
