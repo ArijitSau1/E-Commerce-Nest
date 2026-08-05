@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -9,6 +10,9 @@ import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { Account } from 'src/account/entities/account.entity';
+import { OrderItem } from 'src/order/entities/order-item.entity';
+import { OrderStatus } from 'src/enum';
+
 
 import {
   CreateReviewDto,
@@ -26,6 +30,9 @@ export class ReviewService {
 
     @InjectRepository(Account)
     private readonly accountRepo: Repository<Account>,
+
+    @InjectRepository(OrderItem)
+    private readonly orderItemRepo: Repository<OrderItem>,
   ) {}
 
   async create(dto: CreateReviewDto, accountId: string) {
@@ -44,6 +51,31 @@ export class ReviewService {
     if (!product) {
       throw new NotFoundException('Product not found!');
     }
+
+   const deliveredOrder = await this.orderItemRepo.findOne({
+  where: {
+    product: {
+      id: dto.productId,
+    },
+    order: {
+      account: {
+        id: accountId,
+      },
+      status: OrderStatus.DELIVERED,
+    },
+  },
+  relations: {
+    order: true,
+    product: true,
+  },
+});
+
+if (!deliveredOrder) {
+  throw new BadRequestException(
+    'You can review this product only after it has been delivered.',
+  );
+}
+
 
     const exists = await this.reviewRepo.findOne({
       where: {
@@ -99,10 +131,15 @@ export class ReviewService {
     });
   }
 
-  async update(id: string, dto: UpdateReviewDto) {
+  async update(id: string, dto: UpdateReviewDto, accountId: string,) {
     const review = await this.reviewRepo.findOne({
-      where: { id },
-    });
+  where: {
+    id,
+    account: {
+      id: accountId,
+    },
+  },
+});
 
     if (!review) {
       throw new NotFoundException('Review not found!');
@@ -113,10 +150,15 @@ export class ReviewService {
     return this.reviewRepo.save(review);
   }
 
-  async remove(id: string) {
+  async remove(id: string,accountId: string,) {
     const review = await this.reviewRepo.findOne({
-      where: { id },
-    });
+  where: {
+    id,
+    account: {
+      id: accountId,
+    },
+  },
+});
 
     if (!review) {
       throw new NotFoundException('Review not found!');

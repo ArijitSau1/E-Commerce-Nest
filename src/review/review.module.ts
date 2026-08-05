@@ -8,6 +8,7 @@ import { ReviewService } from './review.service';
 import { Account } from 'src/account/entities/account.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { OrderItem } from 'src/order/entities/order-item.entity';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthModule } from 'src/auth/auth.module';
       Review,
       Product,
       Account,
+      OrderItem
     ]),
     AuthModule,
   ],

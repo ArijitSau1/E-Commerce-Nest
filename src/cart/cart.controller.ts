@@ -51,15 +51,17 @@ export class CartController {
   update(
     @Param('id') id: string,
     @Body() dto: UpdateCartDto,
+     @GetUser('id') accountId: string,
   ) {
-    return this.cartService.update(id, dto);
+    return this.cartService.update(id, dto,accountId);
   }
 
   @Delete(':id')
   remove(
     @Param('id') id: string,
+     @GetUser('id') accountId: string,
   ) {
-    return this.cartService.remove(id);
+    return this.cartService.remove(id,accountId);
   }
 
   @Delete()

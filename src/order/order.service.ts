@@ -58,11 +58,14 @@ export class OrderService {
       throw new NotFoundException('Account not found!');
     }
 
-    const address = await this.addressRepo.findOne({
-      where: {
-        id: dto.addressId,
-      },
-    });
+ const address = await this.addressRepo.findOne({
+  where: {
+    id: dto.addressId,
+    account: {
+      id: accountId,
+    },
+  },
+});
 
     if (!address) {
       throw new NotFoundException('Address not found!');
@@ -259,6 +262,31 @@ async updateStatus(
   order.status = dto.status;
 
   await this.orderRepo.save(order);
+
+
+if (dto.status === OrderStatus.CANCELLED) {
+  const items = await this.orderItemRepo.find({
+    where: {
+      order: {
+        id: order.id,
+      },
+    },
+    relations: {
+      product: true,
+    },
+  });
+
+  for (const item of items) {
+    item.product.stock += item.quantity;
+
+    if (item.product.status === DefaultStatus.INACTIVE) {
+      item.product.status = DefaultStatus.ACTIVE;
+    }
+
+    await this.productRepo.save(item.product);
+  }
+}
+
 
   await this.mailService.sendOrderStatusEmail(
   order.account.fullName,

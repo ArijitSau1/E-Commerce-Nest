@@ -22,6 +22,7 @@ import { MailModule } from './mail/mail.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { InvoiceModule } from './invoice/invoice.module';
 
 
 
@@ -69,8 +70,9 @@ import { DashboardModule } from './dashboard/dashboard.module';
     CouponModule,
     MailModule,
     DashboardModule,
+    InvoiceModule,
     ],
-  controllers: [AppController],
+  controllers: [AppController,],
   providers: [AppService],
 })
 export class AppModule {}

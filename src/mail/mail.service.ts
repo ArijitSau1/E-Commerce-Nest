@@ -3,13 +3,11 @@ import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class MailService {
-  constructor(
-    private readonly mailerService: MailerService,
-  ) {}
+  constructor(private readonly mailerService: MailerService) {}
 
   async sendWelcomeEmail(name: string, email: string) {
     return this.mailerService.sendMail({
-      from: `ShopEasy <${process.env.MAIL_FROM}>`, 
+      from: `ShopEasy <${process.env.MAIL_FROM}>`,
       to: email,
       subject: 'Welcome to ShopEasy 🎉',
       html: `
@@ -31,18 +29,18 @@ export class MailService {
   }
 
   async sendOrderConfirmationEmail(
-  name: string,
-  email: string,
-  orderId: string,
-  amount: number,
-  products: string,
-) {
-  return this.mailerService.sendMail({
-    from: `ShopEasy <${process.env.MAIL_FROM}>`,
-    to: email,
-    subject: '🛒 Order Confirmation - ShopEasy',
+    name: string,
+    email: string,
+    orderId: string,
+    amount: number,
+    products: string,
+  ) {
+    return this.mailerService.sendMail({
+      from: `ShopEasy <${process.env.MAIL_FROM}>`,
+      to: email,
+      subject: '🛒 Order Confirmation - ShopEasy',
 
-    html: `
+      html: `
       <h2>Hello ${name},</h2>
 
       <p>Your order has been placed successfully.</p>
@@ -72,21 +70,21 @@ export class MailService {
 
       <small>ShopEasy Team</small>
     `,
-  });
-}
+    });
+  }
 
-async sendOrderStatusEmail(
-  name: string,
-  email: string,
-  orderId: string,
-  status: string,
-) {
-  return this.mailerService.sendMail({
-    from: `ShopEasy <${process.env.MAIL_FROM}>`,
-    to: email,
-    subject: `Order ${status} - ShopEasy`,
+  async sendOrderStatusEmail(
+    name: string,
+    email: string,
+    orderId: string,
+    status: string,
+  ) {
+    return this.mailerService.sendMail({
+      from: `ShopEasy <${process.env.MAIL_FROM}>`,
+      to: email,
+      subject: `Order ${status} - ShopEasy`,
 
-    html: `
+      html: `
       <h2>Hello ${name},</h2>
 
       <p>Your order status has been updated.</p>
@@ -107,6 +105,52 @@ async sendOrderStatusEmail(
 
       <p>ShopEasy Team</p>
     `,
-  });
-}
+    });
+  }
+
+  async sendOtpEmail(name: string, email: string, otp: string) {
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Password Reset OTP',
+      html: `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>Hello ${name},</h2>
+
+        <p>
+          We received a request to reset your password.
+        </p>
+
+        <p>
+          Your One-Time Password (OTP) is:
+        </p>
+
+        <h1
+          style="
+            color:#2563eb;
+            letter-spacing:5px;
+          "
+        >
+          ${otp}
+        </h1>
+
+        <p>
+          This OTP is valid for
+          <b>5 minutes</b>.
+        </p>
+
+        <p>
+          If you did not request a password reset,
+          please ignore this email.
+        </p>
+
+        <br>
+
+        <p>
+          Thanks,<br>
+          ShopEasy Team
+        </p>
+      </div>
+    `,
+    });
+  }
 }

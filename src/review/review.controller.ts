@@ -88,14 +88,16 @@ create(
   update(
     @Param('id') id: string,
     @Body() dto: UpdateReviewDto,
+     @GetUser('id') accountId: string,
   ) {
-    return this.reviewService.update(id, dto);
+    return this.reviewService.update(id, dto,accountId);
   }
 
   @Delete(':id')
   remove(
     @Param('id') id: string,
+      @GetUser('id') accountId: string,
   ) {
-    return this.reviewService.remove(id);
+    return this.reviewService.remove(id, accountId,);
   }
 }

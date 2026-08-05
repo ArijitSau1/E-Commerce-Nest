@@ -94,24 +94,43 @@ if (dto.quantity > product.stock) {
     });
   }
 
-  async update(id: string, dto: UpdateCartDto) {
+  async update(id: string, dto: UpdateCartDto, accountId: string,) {
     const cart = await this.repo.findOne({
-      where: { id },
-    });
+  where: {
+    id,
+    account: {
+      id: accountId,
+    },
+  },
+  relations: {
+    account: true,
+    product: true,
+  },
+});
 
     if (!cart) {
       throw new NotFoundException('Cart item not found!');
     }
 
+    if (dto.quantity > cart.product.stock) {
+  throw new BadRequestException(
+    `Only ${cart.product.stock} item(s) available in stock.`,
+  );
+}
     cart.quantity = dto.quantity;
 
     return this.repo.save(cart);
   }
 
-  async remove(id: string) {
+  async remove(id: string, accountId: string,) {
     const cart = await this.repo.findOne({
-      where: { id },
-    });
+  where: {
+    id,
+    account: {
+      id: accountId,
+    },
+  },
+});
 
     if (!cart) {
       throw new NotFoundException('Cart item not found!');
