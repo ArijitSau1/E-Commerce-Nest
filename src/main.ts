@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { Reflector } from '@nestjs/core';
+import { GlobalExceptionFilter } from './common/filters/exception.filter';
 
 
 async function bootstrap() {
@@ -32,6 +33,10 @@ app.useGlobalInterceptors(
   const document = SwaggerModule.createDocument(app, config);
 
   SwaggerModule.setup('api', app, document);
+
+  app.useGlobalFilters(
+  new GlobalExceptionFilter(),
+);
 
   await app.listen(process.env.PORT ?? 3000);
 

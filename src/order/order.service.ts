@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource} from 'typeorm';
 
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
@@ -22,6 +22,10 @@ import { UpdateOrderStatusDto } from './dto/order.dto';
 
 import { Product } from 'src/product/entities/product.entity';
 import { DefaultStatus } from 'src/enum';
+
+import { InvoiceService } from 'src/invoice/invoice.service';
+
+
 
 
 
@@ -47,9 +51,24 @@ export class OrderService {
 
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
+
+    private readonly invoiceService: InvoiceService,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(dto: CreateOrderDto, accountId: string) {
+
+
+  const queryRunner =
+    this.dataSource.createQueryRunner();
+
+  await queryRunner.connect();
+
+  await queryRunner.startTransaction();
+
+  try{
+
     const account = await this.accountRepo.findOne({
       where: { id: accountId },
     });
@@ -104,33 +123,38 @@ export class OrderService {
   totalAmount += cart.product.price * cart.quantity;
 }
 
-    const order = this.orderRepo.create({
+    const order = queryRunner.manager.create(Order, {
   account,
   address,
   totalAmount,
   status: OrderStatus.PENDING,
 });
 
-    const savedOrder = await this.orderRepo.save(order);
+const savedOrder =
+  await queryRunner.manager.save(order);
+
 
     for (const cart of carts) {
-      const item = this.orderItemRepo.create({
-        order: savedOrder,
-        product: cart.product,
-        quantity: cart.quantity,
-        price: cart.product.price,
-      });
+  const item = queryRunner.manager.create(
+    OrderItem,
+    {
+      order: savedOrder,
+      product: cart.product,
+      quantity: cart.quantity,
+      price: cart.product.price,
+    },
+  );
 
-      await this.orderItemRepo.save(item);
+  await queryRunner.manager.save(item);
 
-cart.product.stock -= cart.quantity;
+  cart.product.stock -= cart.quantity;
 
-if (cart.product.stock === 0) {
-  cart.product.status = DefaultStatus.INACTIVE;
+  if (cart.product.stock === 0) {
+    cart.product.status = DefaultStatus.INACTIVE;
+  }
+
+  await queryRunner.manager.save(cart.product);
 }
-
-await this.productRepo.save(cart.product);
-    }
 
     let productHtml = '';
 
@@ -145,25 +169,47 @@ for (const cart of carts) {
   `;
 }
 
-    await this.cartRepo.remove(carts);
+    await queryRunner.manager.remove(carts);
+
+    await queryRunner.commitTransaction();
 
 try {
+  const invoice =
+    await this.invoiceService.generateInvoiceBuffer(
+      savedOrder.id,
+    );
+
   await this.mailService.sendOrderConfirmationEmail(
     account.fullName,
     account.email,
     savedOrder.id,
     totalAmount,
-     productHtml,
+    productHtml,
+    invoice,
   );
 } catch (error) {
-  console.log('Order email failed:', error);
+  console.error('Order email failed:', error);
 }
 
 return {
   message: 'Order placed successfully',
   orderId: savedOrder.id,
 };
-  }
+  
+
+} catch (error) {
+
+    await queryRunner.rollbackTransaction();
+
+    throw error;
+
+  } finally {
+
+    await queryRunner.release();
+
+  }}
+
+
 
   async findAll(accountId: string) {
     return this.orderRepo.find({
@@ -180,6 +226,8 @@ return {
       },
     });
   }
+  
+  
 
   async findOne(id: string) {
     const order = await this.orderRepo.findOne({

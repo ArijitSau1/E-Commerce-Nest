@@ -13,6 +13,8 @@ import { Cart } from 'src/cart/entities/cart.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { MailModule } from 'src/mail/mail.module';
+import { InvoiceModule } from 'src/invoice/invoice.module';
+
 
 @Module({
   imports: [
@@ -23,9 +25,11 @@ import { MailModule } from 'src/mail/mail.module';
       Address,
       Cart,
       Product,
+      
     ]),
     AuthModule,
     MailModule,
+    InvoiceModule,
   ],
   controllers: [OrderController],
   providers: [OrderService],

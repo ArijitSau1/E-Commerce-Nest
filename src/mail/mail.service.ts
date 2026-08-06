@@ -34,6 +34,7 @@ export class MailService {
     orderId: string,
     amount: number,
     products: string,
+    invoice:Buffer
   ) {
     return this.mailerService.sendMail({
       from: `ShopEasy <${process.env.MAIL_FROM}>`,
@@ -70,6 +71,15 @@ export class MailService {
 
       <small>ShopEasy Team</small>
     `,
+
+    attachments: [
+    {
+      filename: `Invoice-${orderId}.pdf`,
+      content: invoice,
+      contentType: 'application/pdf',
+    },
+  ],
+
     });
   }
 

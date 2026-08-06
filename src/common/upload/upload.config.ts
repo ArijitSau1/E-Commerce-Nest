@@ -10,6 +10,7 @@ export const multerOptions = (folder: string) => ({
       fs.mkdirSync(path, { recursive: true });
 
       cb(null, path);
+    
     },
 
     filename: (req, file, cb) => {

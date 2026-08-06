@@ -23,6 +23,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
+
 
 
 
@@ -31,6 +35,13 @@ import { InvoiceModule } from './invoice/invoice.module';
     ConfigModule.forRoot({
     isGlobal: true,
   }),
+
+  ThrottlerModule.forRoot([
+  {
+    ttl: 60000,
+    limit: 100,
+  },
+]),
 
   ServeStaticModule.forRoot({
   rootPath: join(__dirname, '..', 'uploads'),
@@ -73,6 +84,9 @@ import { InvoiceModule } from './invoice/invoice.module';
     InvoiceModule,
     ],
   controllers: [AppController,],
-  providers: [AppService],
+  providers: [AppService,{
+    provide: APP_GUARD,
+    useClass: ThrottlerGuard,
+  }],
 })
 export class AppModule {}

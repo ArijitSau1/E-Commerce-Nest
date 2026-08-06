@@ -16,5 +16,6 @@ import { OrderItem } from 'src/order/entities/order-item.entity';
   ],
   controllers: [InvoiceController],
   providers: [InvoiceService],
+  exports: [InvoiceService], 
 })
 export class InvoiceModule {}
