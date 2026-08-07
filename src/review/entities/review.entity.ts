@@ -39,9 +39,9 @@ export class Review {
   review: string;
 
   @Column({
-  nullable: true,
-})
-image: string;
+    nullable: true,
+  })
+  image: string;
 
   @CreateDateColumn()
   createdAt: Date;

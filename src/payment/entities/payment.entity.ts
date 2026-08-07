@@ -47,11 +47,11 @@ export class Payment {
   currency: string;
 
   @Column({
-  type: 'enum',
-  enum: PaymentStatus,
-  default: PaymentStatus.PENDING,
-})
-status: PaymentStatus;
+    type: 'enum',
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING,
+  })
+  status: PaymentStatus;
 
   @CreateDateColumn()
   createdAt: Date;

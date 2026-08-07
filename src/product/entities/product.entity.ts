@@ -1,4 +1,3 @@
-import { Account } from 'src/account/entities/account.entity';
 import { Brand } from 'src/brand/entities/brand.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { DefaultStatus } from 'src/enum';

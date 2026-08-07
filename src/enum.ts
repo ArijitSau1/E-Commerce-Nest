@@ -10,7 +10,6 @@ export enum DefaultStatus {
   DELETED = 'DELETED',
 }
 
-
 export enum LoginType {
   EMAIL = 'EMAIL',
   PHONE = 'PHONE',

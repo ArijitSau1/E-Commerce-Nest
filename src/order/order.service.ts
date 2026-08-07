@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource} from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
@@ -25,9 +25,7 @@ import { DefaultStatus } from 'src/enum';
 
 import { InvoiceService } from 'src/invoice/invoice.service';
 
-
-
-
+import { CouponService } from 'src/coupon/coupon.service';
 
 @Injectable()
 export class OrderService {
@@ -55,111 +53,124 @@ export class OrderService {
     private readonly invoiceService: InvoiceService,
 
     private readonly dataSource: DataSource,
+
+    private readonly couponService: CouponService,
   ) {}
 
   async create(dto: CreateOrderDto, accountId: string) {
+    const queryRunner = this.dataSource.createQueryRunner();
 
+    await queryRunner.connect();
 
-  const queryRunner =
-    this.dataSource.createQueryRunner();
+    await queryRunner.startTransaction();
 
-  await queryRunner.connect();
+    try {
+      const account = await this.accountRepo.findOne({
+        where: { id: accountId },
+      });
 
-  await queryRunner.startTransaction();
+      if (!account) {
+        throw new NotFoundException('Account not found!');
+      }
 
-  try{
-
-    const account = await this.accountRepo.findOne({
-      where: { id: accountId },
-    });
-
-    if (!account) {
-      throw new NotFoundException('Account not found!');
-    }
-
- const address = await this.addressRepo.findOne({
-  where: {
-    id: dto.addressId,
-    account: {
-      id: accountId,
-    },
-  },
-});
-
-    if (!address) {
-      throw new NotFoundException('Address not found!');
-    }
-
-    const carts = await this.cartRepo.find({
-      where: {
-        account: {
-          id: accountId,
+      const address = await this.addressRepo.findOne({
+        where: {
+          id: dto.addressId,
+          account: {
+            id: accountId,
+          },
         },
-      },
-      relations: {
-        product: true,
-      },
-    });
+      });
 
-    if (carts.length === 0) {
-      throw new NotFoundException('Cart is empty!');
-    }
+      if (!address) {
+        throw new NotFoundException('Address not found!');
+      }
 
-    let totalAmount = 0;
+      const carts = await this.cartRepo.find({
+        where: {
+          account: {
+            id: accountId,
+          },
+        },
+        relations: {
+          product: true,
+        },
+      });
 
-    for (const cart of carts) {
-  if (cart.product.status !== DefaultStatus.ACTIVE) {
-    throw new BadRequestException(
-      `${cart.product.name} is no longer available.`,
-    );
-  }
+      if (carts.length === 0) {
+        throw new NotFoundException('Cart is empty!');
+      }
 
-  if (cart.quantity > cart.product.stock) {
-    throw new BadRequestException(
-      `${cart.product.name} has only ${cart.product.stock} item(s) left in stock.`,
-    );
-  }
+      let totalAmount = 0;
+      let discountAmount = 0;
+      let finalAmount = 0;
+      let appliedCouponCode: string | undefined;
 
-  totalAmount += cart.product.price * cart.quantity;
-}
+      for (const cart of carts) {
+        if (cart.product.status !== DefaultStatus.ACTIVE) {
+          throw new BadRequestException(
+            `${cart.product.name} is no longer available.`,
+          );
+        }
 
-    const order = queryRunner.manager.create(Order, {
-  account,
-  address,
-  totalAmount,
-  status: OrderStatus.PENDING,
-});
+        if (cart.quantity > cart.product.stock) {
+          throw new BadRequestException(
+            `${cart.product.name} has only ${cart.product.stock} item(s) left in stock.`,
+          );
+        }
 
-const savedOrder =
-  await queryRunner.manager.save(order);
+        totalAmount += cart.product.price * cart.quantity;
+      }
 
+      finalAmount = totalAmount;
 
-    for (const cart of carts) {
-  const item = queryRunner.manager.create(
-    OrderItem,
-    {
-      order: savedOrder,
-      product: cart.product,
-      quantity: cart.quantity,
-      price: cart.product.price,
-    },
-  );
+      if (dto.couponCode) {
+        const coupon = await this.couponService.apply(
+          dto.couponCode,
+          totalAmount,
+          accountId,
+        );
 
-  await queryRunner.manager.save(item);
+        discountAmount = coupon.discount;
+        finalAmount = coupon.finalAmount;
+        appliedCouponCode = coupon.couponCode;
+      }
 
-  cart.product.stock -= cart.quantity;
+      const order = queryRunner.manager.create(Order, {
+        account,
+        address,
+        totalAmount,
+        discountAmount,
+        finalAmount,
+        couponCode: appliedCouponCode,
+        status: OrderStatus.PENDING,
+      });
 
-  if (cart.product.stock === 0) {
-    cart.product.status = DefaultStatus.INACTIVE;
-  }
+      const savedOrder = await queryRunner.manager.save(order);
 
-  await queryRunner.manager.save(cart.product);
-}
+      for (const cart of carts) {
+        const item = queryRunner.manager.create(OrderItem, {
+          order: savedOrder,
+          product: cart.product,
+          quantity: cart.quantity,
+          price: cart.product.price,
+        });
 
-    let productHtml = '';
+        await queryRunner.manager.save(item);
 
-for (const cart of carts) {
-  productHtml += `
+        cart.product.stock -= cart.quantity;
+
+        if (cart.product.stock === 0) {
+          cart.product.status = DefaultStatus.INACTIVE;
+        }
+
+        await queryRunner.manager.save(cart.product);
+      }
+
+      let productHtml = '';
+
+      for (const cart of carts) {
+        productHtml += `
     <p>
       <b>${cart.product.name}</b><br>
       Quantity: ${cart.quantity}<br>
@@ -167,49 +178,51 @@ for (const cart of carts) {
     </p>
     <hr>
   `;
-}
+      }
 
-    await queryRunner.manager.remove(carts);
+      await queryRunner.manager.remove(carts);
 
-    await queryRunner.commitTransaction();
+      await queryRunner.commitTransaction();
 
-try {
-  const invoice =
-    await this.invoiceService.generateInvoiceBuffer(
-      savedOrder.id,
-    );
+      if (appliedCouponCode) {
+        await this.couponService.increaseUsage(appliedCouponCode);
+      }
 
-  await this.mailService.sendOrderConfirmationEmail(
-    account.fullName,
-    account.email,
-    savedOrder.id,
-    totalAmount,
-    productHtml,
-    invoice,
-  );
-} catch (error) {
-  console.error('Order email failed:', error);
-}
+      try {
+        const invoice = await this.invoiceService.generateInvoiceBuffer(
+          savedOrder.id,
+        );
 
-return {
-  message: 'Order placed successfully',
-  orderId: savedOrder.id,
-};
-  
+        await this.mailService.sendOrderConfirmationEmail(
+          account.fullName,
+          account.email,
+          savedOrder.id,
+          totalAmount,
+          productHtml,
+          discountAmount,
+          finalAmount,
+          invoice,
+        );
+      } catch (error) {
+        console.error('Order email failed:', error);
+      }
 
-} catch (error) {
+      return {
+        message: 'Order placed successfully',
+        orderId: savedOrder.id,
+        totalAmount,
+        discountAmount,
+        finalAmount,
+        couponCode: appliedCouponCode,
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
 
-    await queryRunner.rollbackTransaction();
-
-    throw error;
-
-  } finally {
-
-    await queryRunner.release();
-
-  }}
-
-
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 
   async findAll(accountId: string) {
     return this.orderRepo.find({
@@ -226,8 +239,6 @@ return {
       },
     });
   }
-  
-  
 
   async findOne(id: string) {
     const order = await this.orderRepo.findOne({
@@ -260,92 +271,75 @@ return {
     };
   }
 
-
-async updateStatus(
-  id: string,
-  dto: UpdateOrderStatusDto,
-) {
-  const order = await this.orderRepo.findOne({
-    where: { id },
-    relations: {
-      account: true,
-    },
-  });
-
-  if (!order) {
-    throw new NotFoundException('Order not found!');
-  }
-
-  const validTransitions: Record<
-    OrderStatus,
-    OrderStatus[]
-  > = {
-    [OrderStatus.PENDING]: [
-      OrderStatus.CONFIRMED,
-      OrderStatus.CANCELLED,
-    ],
-
-    [OrderStatus.CONFIRMED]: [
-      OrderStatus.SHIPPED,
-      OrderStatus.CANCELLED,
-    ],
-
-    [OrderStatus.SHIPPED]: [
-      OrderStatus.DELIVERED,
-    ],
-
-    [OrderStatus.DELIVERED]: [],
-
-    [OrderStatus.CANCELLED]: [],
-  };
-
-  const allowed = validTransitions[order.status];
-
-  if (!allowed.includes(dto.status)) {
-    throw new BadRequestException(
-      `Cannot change order status from ${order.status} to ${dto.status}`,
-    );
-  }
-
-  order.status = dto.status;
-
-  await this.orderRepo.save(order);
-
-
-if (dto.status === OrderStatus.CANCELLED) {
-  const items = await this.orderItemRepo.find({
-    where: {
-      order: {
-        id: order.id,
+  async updateStatus(id: string, dto: UpdateOrderStatusDto) {
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      relations: {
+        account: true,
       },
-    },
-    relations: {
-      product: true,
-    },
-  });
+    });
 
-  for (const item of items) {
-    item.product.stock += item.quantity;
-
-    if (item.product.status === DefaultStatus.INACTIVE) {
-      item.product.status = DefaultStatus.ACTIVE;
+    if (!order) {
+      throw new NotFoundException('Order not found!');
     }
 
-    await this.productRepo.save(item.product);
+    const validTransitions: Record<OrderStatus, OrderStatus[]> = {
+      [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+
+      [OrderStatus.CONFIRMED]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+
+      [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED],
+
+      [OrderStatus.DELIVERED]: [],
+
+      [OrderStatus.CANCELLED]: [],
+    };
+
+    const allowed = validTransitions[order.status];
+
+    if (!allowed.includes(dto.status)) {
+      throw new BadRequestException(
+        `Cannot change order status from ${order.status} to ${dto.status}`,
+      );
+    }
+
+    order.status = dto.status;
+
+    await this.orderRepo.save(order);
+
+    if (dto.status === OrderStatus.CANCELLED) {
+      const items = await this.orderItemRepo.find({
+        where: {
+          order: {
+            id: order.id,
+          },
+        },
+        relations: {
+          product: true,
+        },
+      });
+
+      for (const item of items) {
+        item.product.stock += item.quantity;
+
+        if (item.product.status === DefaultStatus.INACTIVE) {
+          item.product.status = DefaultStatus.ACTIVE;
+        }
+
+        await this.productRepo.save(item.product);
+      }
+    }
+
+    await this.mailService.sendOrderStatusEmail(
+      order.account.fullName,
+      order.account.email,
+      order.id,
+      order.status,
+    );
+
+    return {
+      message: 'Order status updated successfully',
+      status: order.status,
+    };
   }
-}
-
-
-  await this.mailService.sendOrderStatusEmail(
-  order.account.fullName,
-  order.account.email,
-  order.id,
-  order.status,
-);
-
-  return {
-    message: 'Order status updated successfully',
-    status: order.status,
-  };
-}
 }

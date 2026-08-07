@@ -27,40 +27,28 @@ import { CheckPermissions } from 'src/auth/decorators/permissions.decorator';
 @UseGuards(JwtAuthGuard)
 @Controller('order')
 export class OrderController {
-  constructor(
-    private readonly orderService: OrderService,
-  ) {}
+  constructor(private readonly orderService: OrderService) {}
 
   @Post()
-  create(
-    @Body() dto: CreateOrderDto,
-    @GetUser('id') accountId: string,
-  ) {
+  create(@Body() dto: CreateOrderDto, @GetUser('id') accountId: string) {
     return this.orderService.create(dto, accountId);
   }
 
   @Get()
-  findAll(
-    @GetUser('id') accountId: string,
-  ) {
+  findAll(@GetUser('id') accountId: string) {
     return this.orderService.findAll(accountId);
   }
 
   @Get(':id')
-  findOne(
-    @Param('id') id: string,
-  ) {
+  findOne(@Param('id') id: string) {
     return this.orderService.findOne(id);
   }
 
   @Patch(':id/status')
-@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.ADMIN)
-@CheckPermissions([PermissionAction.UPDATE, 'order'])
-updateStatus(
-  @Param('id') id: string,
-  @Body() dto: UpdateOrderStatusDto,
-) {
-  return this.orderService.updateStatus(id, dto);
-}
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @Roles(UserRole.ADMIN)
+  @CheckPermissions([PermissionAction.UPDATE, 'order'])
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
+    return this.orderService.updateStatus(id, dto);
+  }
 }

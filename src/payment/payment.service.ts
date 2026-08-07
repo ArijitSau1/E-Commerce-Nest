@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -13,10 +10,7 @@ import { Order } from 'src/order/entities/order.entity';
 
 import { PaymentStatus, OrderStatus } from 'src/enum';
 
-import {
-  CreatePaymentDto,
-  VerifyPaymentDto,
-} from './dto/payment.dto';
+import { CreatePaymentDto, VerifyPaymentDto } from './dto/payment.dto';
 
 @Injectable()
 export class PaymentService {
@@ -66,17 +60,11 @@ export class PaymentService {
   }
 
   async verify(dto: VerifyPaymentDto) {
-    const secret = this.configService.get<string>(
-      'RAZORPAY_KEY_SECRET',
-    )!;
+    const secret = this.configService.get<string>('RAZORPAY_KEY_SECRET')!;
 
     const generatedSignature = crypto
       .createHmac('sha256', secret)
-      .update(
-        dto.razorpay_order_id +
-          '|' +
-          dto.razorpay_payment_id,
-      )
+      .update(dto.razorpay_order_id + '|' + dto.razorpay_payment_id)
       .digest('hex');
 
     if (generatedSignature !== dto.razorpay_signature) {

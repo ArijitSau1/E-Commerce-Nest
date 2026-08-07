@@ -13,10 +13,9 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { CouponService } from './coupon.service';
 
-import {
-  CreateCouponDto,
-  UpdateCouponDto,
-} from './dto/coupon.dto';
+import { CreateCouponDto } from './dto/createCoupon.dto';
+
+import { UpdateCouponDto } from './dto/updateCoupon.dto';
 
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
@@ -25,9 +24,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('coupon')
 export class CouponController {
-  constructor(
-    private readonly couponService: CouponService,
-  ) {}
+  constructor(private readonly couponService: CouponService) {}
 
   @Post()
   create(@Body() dto: CreateCouponDto) {
@@ -45,10 +42,7 @@ export class CouponController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateCouponDto,
-  ) {
+  update(@Param('id') id: string, @Body() dto: UpdateCouponDto) {
     return this.couponService.update(id, dto);
   }
 
@@ -65,9 +59,6 @@ export class CouponController {
       total: number;
     },
   ) {
-    return this.couponService.apply(
-      body.code,
-      body.total,
-    );
+    return this.couponService.apply(body.code, body.total);
   }
 }

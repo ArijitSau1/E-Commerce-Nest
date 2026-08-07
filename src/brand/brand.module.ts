@@ -7,10 +7,7 @@ import { Brand } from './entities/brand.entity';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Brand]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Brand]), AuthModule],
   controllers: [BrandController],
   providers: [BrandService],
   exports: [BrandService],

@@ -9,13 +9,7 @@ import { AddressService } from './address.service';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Address,
-      Account,
-    ]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Address, Account]), AuthModule],
   controllers: [AddressController],
   providers: [AddressService],
   exports: [AddressService],

@@ -1,17 +1,11 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Address } from './entities/address.entity';
 import { Account } from 'src/account/entities/account.entity';
 
-import {
-  CreateAddressDto,
-  UpdateAddressDto,
-} from './dto/address.dto';
+import { CreateAddressDto, UpdateAddressDto } from './dto/address.dto';
 
 @Injectable()
 export class AddressService {
@@ -76,41 +70,41 @@ export class AddressService {
     return this.repo.save(address);
   }
 
- async setDefault(id: string, accountId: string) {
-  // Get all addresses of this user
-  const addresses = await this.repo.find({
-    where: {
-      account: {
-        id: accountId,
+  async setDefault(id: string, accountId: string) {
+    // Get all addresses of this user
+    const addresses = await this.repo.find({
+      where: {
+        account: {
+          id: accountId,
+        },
       },
-    },
-    relations: {
-      account: true,
-    },
-  });
+      relations: {
+        account: true,
+      },
+    });
 
-  // Reset all to false
-  for (const item of addresses) {
-    item.isDefault = false;
-    await this.repo.save(item);
+    // Reset all to false
+    for (const item of addresses) {
+      item.isDefault = false;
+      await this.repo.save(item);
+    }
+
+    // Find selected address
+    const address = addresses.find((item) => item.id === id);
+
+    if (!address) {
+      throw new NotFoundException('Address not found!');
+    }
+
+    // Set selected one as default
+    address.isDefault = true;
+
+    await this.repo.save(address);
+
+    return {
+      message: 'Default address updated successfully',
+    };
   }
-
-  // Find selected address
-  const address = addresses.find((item) => item.id === id);
-
-  if (!address) {
-    throw new NotFoundException('Address not found!');
-  }
-
-  // Set selected one as default
-  address.isDefault = true;
-
-  await this.repo.save(address);
-
-  return {
-    message: 'Default address updated successfully',
-  };
-}
 
   async remove(id: string) {
     const address = await this.findOne(id);

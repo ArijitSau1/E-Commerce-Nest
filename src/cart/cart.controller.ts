@@ -21,29 +21,20 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 @UseGuards(JwtAuthGuard)
 @Controller('cart')
 export class CartController {
-  constructor(
-    private readonly cartService: CartService,
-  ) {}
+  constructor(private readonly cartService: CartService) {}
 
   @Post()
-  add(
-    @Body() dto: AddCartDto,
-    @GetUser('id') accountId: string,
-  ) {
+  add(@Body() dto: AddCartDto, @GetUser('id') accountId: string) {
     return this.cartService.add(dto, accountId);
   }
 
   @Get()
-  findAll(
-    @GetUser('id') accountId: string,
-  ) {
+  findAll(@GetUser('id') accountId: string) {
     return this.cartService.findAll(accountId);
   }
 
   @Get('summary')
-  summary(
-    @GetUser('id') accountId: string,
-  ) {
+  summary(@GetUser('id') accountId: string) {
     return this.cartService.summary(accountId);
   }
 
@@ -51,23 +42,18 @@ export class CartController {
   update(
     @Param('id') id: string,
     @Body() dto: UpdateCartDto,
-     @GetUser('id') accountId: string,
+    @GetUser('id') accountId: string,
   ) {
-    return this.cartService.update(id, dto,accountId);
+    return this.cartService.update(id, dto, accountId);
   }
 
   @Delete(':id')
-  remove(
-    @Param('id') id: string,
-     @GetUser('id') accountId: string,
-  ) {
-    return this.cartService.remove(id,accountId);
+  remove(@Param('id') id: string, @GetUser('id') accountId: string) {
+    return this.cartService.remove(id, accountId);
   }
 
   @Delete()
-  clear(
-    @GetUser('id') accountId: string,
-  ) {
+  clear(@GetUser('id') accountId: string) {
     return this.cartService.clear(accountId);
   }
 }

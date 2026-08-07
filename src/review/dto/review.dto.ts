@@ -1,6 +1,5 @@
 import { Type } from 'class-transformer';
 import {
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -24,8 +23,8 @@ export class CreateReviewDto {
   review?: string;
 
   @IsOptional()
-@IsString()
-image?: string;
+  @IsString()
+  image?: string;
 }
 
 export class UpdateReviewDto {
@@ -41,6 +40,6 @@ export class UpdateReviewDto {
   review?: string;
 
   @IsOptional()
-@IsString()
-image?: string;
+  @IsString()
+  image?: string;
 }

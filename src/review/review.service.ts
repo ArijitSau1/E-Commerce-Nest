@@ -13,11 +13,7 @@ import { Account } from 'src/account/entities/account.entity';
 import { OrderItem } from 'src/order/entities/order-item.entity';
 import { OrderStatus } from 'src/enum';
 
-
-import {
-  CreateReviewDto,
-  UpdateReviewDto,
-} from './dto/review.dto';
+import { CreateReviewDto, UpdateReviewDto } from './dto/review.dto';
 
 @Injectable()
 export class ReviewService {
@@ -52,30 +48,29 @@ export class ReviewService {
       throw new NotFoundException('Product not found!');
     }
 
-   const deliveredOrder = await this.orderItemRepo.findOne({
-  where: {
-    product: {
-      id: dto.productId,
-    },
-    order: {
-      account: {
-        id: accountId,
+    const deliveredOrder = await this.orderItemRepo.findOne({
+      where: {
+        product: {
+          id: dto.productId,
+        },
+        order: {
+          account: {
+            id: accountId,
+          },
+          status: OrderStatus.DELIVERED,
+        },
       },
-      status: OrderStatus.DELIVERED,
-    },
-  },
-  relations: {
-    order: true,
-    product: true,
-  },
-});
+      relations: {
+        order: true,
+        product: true,
+      },
+    });
 
-if (!deliveredOrder) {
-  throw new BadRequestException(
-    'You can review this product only after it has been delivered.',
-  );
-}
-
+    if (!deliveredOrder) {
+      throw new BadRequestException(
+        'You can review this product only after it has been delivered.',
+      );
+    }
 
     const exists = await this.reviewRepo.findOne({
       where: {
@@ -88,13 +83,13 @@ if (!deliveredOrder) {
       throw new ConflictException('You already reviewed this product.');
     }
 
-   const review = this.reviewRepo.create({
-  rating: dto.rating,
-  review: dto.review,
-  image: dto.image,
-  account,
-  product,
-});
+    const review = this.reviewRepo.create({
+      rating: dto.rating,
+      review: dto.review,
+      image: dto.image,
+      account,
+      product,
+    });
 
     return this.reviewRepo.save(review);
   }
@@ -131,15 +126,15 @@ if (!deliveredOrder) {
     });
   }
 
-  async update(id: string, dto: UpdateReviewDto, accountId: string,) {
+  async update(id: string, dto: UpdateReviewDto, accountId: string) {
     const review = await this.reviewRepo.findOne({
-  where: {
-    id,
-    account: {
-      id: accountId,
-    },
-  },
-});
+      where: {
+        id,
+        account: {
+          id: accountId,
+        },
+      },
+    });
 
     if (!review) {
       throw new NotFoundException('Review not found!');
@@ -150,15 +145,15 @@ if (!deliveredOrder) {
     return this.reviewRepo.save(review);
   }
 
-  async remove(id: string,accountId: string,) {
+  async remove(id: string, accountId: string) {
     const review = await this.reviewRepo.findOne({
-  where: {
-    id,
-    account: {
-      id: accountId,
-    },
-  },
-});
+      where: {
+        id,
+        account: {
+          id: accountId,
+        },
+      },
+    });
 
     if (!review) {
       throw new NotFoundException('Review not found!');

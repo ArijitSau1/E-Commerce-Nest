@@ -25,16 +25,11 @@ export class AccountService {
 
   async create(dto: CreateAccountDto, createdBy: string) {
     const user = await this.repo.findOne({
-      where: [
-        { email: dto.email },
-        { phoneNumber: dto.phoneNumber },
-      ],
+      where: [{ email: dto.email }, { phoneNumber: dto.phoneNumber }],
     });
 
     if (user) {
-      throw new ConflictException(
-        'Email or Phone Number already exists!',
-      );
+      throw new ConflictException('Email or Phone Number already exists!');
     }
 
     const encryptedPassword = await bcrypt.hash(dto.password, 13);
@@ -57,13 +52,10 @@ export class AccountService {
 
     const query = this.repo
       .createQueryBuilder('account')
-      .where(
-        'account.status = :status AND account.createdBy = :createdBy',
-        {
-          status: dto.status ?? DefaultStatus.ACTIVE,
-          createdBy,
-        },
-      );
+      .where('account.status = :status AND account.createdBy = :createdBy', {
+        status: dto.status ?? DefaultStatus.ACTIVE,
+        createdBy,
+      });
 
     if (dto.role) {
       query.andWhere('account.roles = :roles', {
@@ -138,16 +130,11 @@ export class AccountService {
   async findAllCustomerPhone() {
     return this.repo
       .createQueryBuilder('account')
-      .select([
-        'account.phoneNumber',
-      ])
-      .where(
-        'account.status = :status AND account.roles = :roles',
-        {
-          status: DefaultStatus.ACTIVE,
-          roles: UserRole.CUSTOMER,
-        },
-      )
+      .select(['account.phoneNumber'])
+      .where('account.status = :status AND account.roles = :roles', {
+        status: DefaultStatus.ACTIVE,
+        roles: UserRole.CUSTOMER,
+      })
       .getMany();
   }
 }

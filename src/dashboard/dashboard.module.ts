@@ -13,13 +13,7 @@ import { OrderItem } from 'src/order/entities/order-item.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Account,
-      Product,
-      Order,
-      Payment,
-      OrderItem
-    ]),
+    TypeOrmModule.forFeature([Account, Product, Order, Payment, OrderItem]),
     AuthModule,
   ],
   controllers: [DashboardController],

@@ -105,9 +105,6 @@ export class Account {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(
-    () => UserPermission,
-    (userPermission) => userPermission.account,
-  )
+  @OneToMany(() => UserPermission, (userPermission) => userPermission.account)
   userPermission: UserPermission[];
 }

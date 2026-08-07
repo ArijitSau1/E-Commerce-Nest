@@ -29,19 +29,21 @@ export class MailService {
   }
 
   async sendOrderConfirmationEmail(
-    name: string,
-    email: string,
-    orderId: string,
-    amount: number,
-    products: string,
-    invoice:Buffer
-  ) {
-    return this.mailerService.sendMail({
-      from: `ShopEasy <${process.env.MAIL_FROM}>`,
-      to: email,
-      subject: '🛒 Order Confirmation - ShopEasy',
+  name: string,
+  email: string,
+  orderId: string,
+  amount: number,
+  products: string,
+  discountAmount: number,
+  finalAmount: number,
+  invoice: Buffer,
+) {
+  return this.mailerService.sendMail({
+    from: `ShopEasy <${process.env.MAIL_FROM}>`,
+    to: email,
+    subject: '🛒 Order Confirmation - ShopEasy',
 
-      html: `
+    html: `
       <h2>Hello ${name},</h2>
 
       <p>Your order has been placed successfully.</p>
@@ -50,12 +52,15 @@ export class MailService {
 
       ${products}
 
-
       <hr>
 
       <p><b>Order ID:</b> ${orderId}</p>
 
-      <p><b>Total Amount:</b> ₹${amount}</p>
+      <p><b>Subtotal:</b> ₹${amount}</p>
+
+      <p><b>Discount:</b> ₹${discountAmount}</p>
+
+      <p><b>Final Amount:</b> ₹${finalAmount}</p>
 
       <p><b>Status:</b> PENDING</p>
 
@@ -73,15 +78,14 @@ export class MailService {
     `,
 
     attachments: [
-    {
-      filename: `Invoice-${orderId}.pdf`,
-      content: invoice,
-      contentType: 'application/pdf',
-    },
-  ],
-
-    });
-  }
+      {
+        filename: `Invoice-${orderId}.pdf`,
+        content: invoice,
+        contentType: 'application/pdf',
+      },
+    ],
+  });
+}
 
   async sendOrderStatusEmail(
     name: string,

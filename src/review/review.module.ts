@@ -12,12 +12,7 @@ import { OrderItem } from 'src/order/entities/order-item.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Review,
-      Product,
-      Account,
-      OrderItem
-    ]),
+    TypeOrmModule.forFeature([Review, Product, Account, OrderItem]),
     AuthModule,
   ],
   controllers: [ReviewController],

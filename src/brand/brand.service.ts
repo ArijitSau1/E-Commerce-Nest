@@ -31,10 +31,7 @@ export class BrandService {
       throw new ConflictException('Brand already exists!');
     }
 
-    const slug = dto.name
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-');
+    const slug = dto.name.toLowerCase().trim().replace(/\s+/g, '-');
 
     const obj = this.repo.create({
       name: dto.name,
@@ -59,12 +56,9 @@ export class BrandService {
 
     query.andWhere(
       new Brackets((qb) => {
-        qb.where(
-          'brand.name LIKE :keyword OR brand.slug LIKE :keyword',
-          {
-            keyword: `%${keyword}%`,
-          },
-        );
+        qb.where('brand.name LIKE :keyword OR brand.slug LIKE :keyword', {
+          keyword: `%${keyword}%`,
+        });
       }),
     );
 
@@ -97,10 +91,7 @@ export class BrandService {
 
     if (dto.name) {
       brand.name = dto.name;
-      brand.slug = dto.name
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-');
+      brand.slug = dto.name.toLowerCase().trim().replace(/\s+/g, '-');
     }
 
     if (dto.image !== undefined) {

@@ -9,13 +9,7 @@ import { Order } from 'src/order/entities/order.entity';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Payment,
-      Order,
-    ]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Payment, Order]), AuthModule],
   controllers: [PaymentController],
   providers: [PaymentService],
 })

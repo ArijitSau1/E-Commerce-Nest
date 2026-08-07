@@ -12,9 +12,6 @@ export class Menu {
   @Column({ type: 'varchar', length: 50, unique: true })
   title: string;
 
-  @OneToMany(
-    () => UserPermission,
-    (userPermission) => userPermission.menu,
-  )
+  @OneToMany(() => UserPermission, (userPermission) => userPermission.menu)
   userPermission: UserPermission[];
 }

@@ -29,15 +29,9 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 
 import { PermissionAction, UserRole } from 'src/enum';
 
-import {
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
+import { UploadedFile, UseInterceptors } from '@nestjs/common';
 
-import {
-  ApiBody,
-  ApiConsumes,
-} from '@nestjs/swagger';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateProductWithImageDto } from './dto/create-product-with-image.dto';
@@ -47,37 +41,29 @@ import { multerOptions } from 'src/common/upload/upload.config';
 @ApiBearerAuth()
 @Controller('product')
 export class ProductController {
-  constructor(
-    private readonly productService: ProductService,
-  ) {}
+  constructor(private readonly productService: ProductService) {}
 
- @Post()
-@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
-@Roles(UserRole.ADMIN)
-@CheckPermissions([PermissionAction.CREATE, 'product'])
-@ApiConsumes('multipart/form-data')
-@ApiConsumes('multipart/form-data')
-@ApiBody({
-  type: CreateProductWithImageDto,
-})
-@UseInterceptors(
-  FileInterceptor(
-    'image',
-    multerOptions('product'),
-  ),
-)
-create(
-  @UploadedFile() file: Express.Multer.File,
-  @Body() dto: CreateProductDto,
-  @GetUser('id') userId: string,
-) {
-  if (file) {
-    dto.image =
-  `http://localhost:3000/uploads/product/${file.filename}`;
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @Roles(UserRole.ADMIN)
+  @CheckPermissions([PermissionAction.CREATE, 'product'])
+  @ApiConsumes('multipart/form-data')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: CreateProductWithImageDto,
+  })
+  @UseInterceptors(FileInterceptor('image', multerOptions('product')))
+  create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: CreateProductDto,
+    @GetUser('id') userId: string,
+  ) {
+    if (file) {
+      dto.image = `http://localhost:3000/uploads/product/${file.filename}`;
+    }
+
+    return this.productService.create(dto, userId);
   }
-
-  return this.productService.create(dto, userId);
-}
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -95,10 +81,7 @@ create(
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.ADMIN)
   @CheckPermissions([PermissionAction.UPDATE, 'product'])
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateProductDto,
-  ) {
+  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productService.update(id, dto);
   }
 
@@ -106,10 +89,7 @@ create(
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.ADMIN)
   @CheckPermissions([PermissionAction.UPDATE, 'product'])
-  status(
-    @Param('id') id: string,
-    @Body() dto: StatusDto,
-  ) {
+  status(@Param('id') id: string, @Body() dto: StatusDto) {
     return this.productService.status(id, dto);
   }
 

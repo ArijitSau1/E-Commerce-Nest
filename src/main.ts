@@ -1,19 +1,23 @@
-import { ValidationPipe,ClassSerializerInterceptor } from '@nestjs/common';
+import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { Reflector } from '@nestjs/core';
 import { GlobalExceptionFilter } from './common/filters/exception.filter';
+import helmet from 'helmet';
+import compression from 'compression';
+
 
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-
-app.useGlobalInterceptors(
-  new ClassSerializerInterceptor(app.get(Reflector)),
-);
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.enableCors();
+
+  app.use(helmet());
+
+  app.use(compression());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -34,14 +38,16 @@ app.useGlobalInterceptors(
 
   SwaggerModule.setup('api', app, document);
 
-  app.useGlobalFilters(
-  new GlobalExceptionFilter(),
-);
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000);
 
-  console.log(`Application running on http://localhost:${process.env.PORT ?? 3000}`);
-  console.log(`Swagger running on http://localhost:${process.env.PORT ?? 3000}/api`);
+  console.log(
+    `Application running on http://localhost:${process.env.PORT ?? 3000}`,
+  );
+  console.log(
+    `Swagger running on http://localhost:${process.env.PORT ?? 3000}/api`,
+  );
 }
 
 bootstrap();

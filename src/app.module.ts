@@ -27,37 +27,34 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
-
-
-
 @Module({
   imports: [
     ConfigModule.forRoot({
-    isGlobal: true,
-  }),
+      isGlobal: true,
+    }),
 
-  ThrottlerModule.forRoot([
-  {
-    ttl: 60000,
-    limit: 100,
-  },
-]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
 
-  ServeStaticModule.forRoot({
-  rootPath: join(__dirname, '..', 'uploads'),
-  serveRoot: '/uploads',
-}),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
 
-  TypeOrmModule.forRoot({
-    type: 'mysql',
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    autoLoadEntities: true,
-    synchronize: true,
-  }),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      autoLoadEntities: true,
+      synchronize: true,
+    }),
 
     AccountModule,
 
@@ -82,11 +79,14 @@ import { ThrottlerGuard } from '@nestjs/throttler';
     MailModule,
     DashboardModule,
     InvoiceModule,
-    ],
-  controllers: [AppController,],
-  providers: [AppService,{
-    provide: APP_GUARD,
-    useClass: ThrottlerGuard,
-  }],
+  ],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

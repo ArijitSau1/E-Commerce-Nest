@@ -20,39 +20,25 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 @UseGuards(JwtAuthGuard)
 @Controller('wishlist')
 export class WishlistController {
-  constructor(
-    private readonly wishlistService: WishlistService,
-  ) {}
+  constructor(private readonly wishlistService: WishlistService) {}
 
   @Post()
-  add(
-    @Body() dto: CreateWishlistDto,
-    @GetUser('id') accountId: string,
-  ) {
-    
-
+  add(@Body() dto: CreateWishlistDto, @GetUser('id') accountId: string) {
     return this.wishlistService.add(dto, accountId);
   }
 
   @Get()
-  findAll(
-    @GetUser('id') accountId: string,
-  ) {
+  findAll(@GetUser('id') accountId: string) {
     return this.wishlistService.findAll(accountId);
   }
 
   @Get('count')
-  count(
-    @GetUser('id') accountId: string,
-  ) {
+  count(@GetUser('id') accountId: string) {
     return this.wishlistService.count(accountId);
   }
 
   @Delete(':id')
-  remove(
-    @Param('id') id: string,
-    @GetUser('id') accountId: string,
-  ) {
+  remove(@Param('id') id: string, @GetUser('id') accountId: string) {
     return this.wishlistService.remove(id, accountId);
   }
 }

@@ -10,14 +10,7 @@ import { Account } from 'src/account/entities/account.entity';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([
-      Cart,
-      Product,
-      Account,
-    ]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Cart, Product, Account]), AuthModule],
   controllers: [CartController],
   providers: [CartService],
   exports: [CartService],

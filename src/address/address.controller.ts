@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
- Delete,
+  Delete,
   Get,
   Param,
   Patch,
@@ -25,55 +25,35 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 @UseGuards(JwtAuthGuard)
 @Controller('address')
 export class AddressController {
-  constructor(
-    private readonly addressService: AddressService,
-  ) {}
+  constructor(private readonly addressService: AddressService) {}
 
   @Post()
-  create(
-    @Body() dto: CreateAddressDto,
-    @GetUser('id') accountId: string,
-  ) {
+  create(@Body() dto: CreateAddressDto, @GetUser('id') accountId: string) {
     return this.addressService.create(dto, accountId);
   }
 
   @Get()
-  findAll(
-    @GetUser('id') accountId: string,
-  ) {
+  findAll(@GetUser('id') accountId: string) {
     return this.addressService.findAll(accountId);
   }
 
   @Get(':id')
-  findOne(
-    @Param('id') id: string,
-  ) {
+  findOne(@Param('id') id: string) {
     return this.addressService.findOne(id);
   }
 
-
-   @Patch('default/:id')
-  setDefault(
-    @Param('id') id: string,
-    @GetUser('id') accountId: string,
-  ) {
+  @Patch('default/:id')
+  setDefault(@Param('id') id: string, @GetUser('id') accountId: string) {
     return this.addressService.setDefault(id, accountId);
   }
-  
+
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateAddressDto,
-  ) {
+  update(@Param('id') id: string, @Body() dto: UpdateAddressDto) {
     return this.addressService.update(id, dto);
   }
 
- 
-
   @Delete(':id')
-  remove(
-    @Param('id') id: string,
-  ) {
+  remove(@Param('id') id: string) {
     return this.addressService.remove(id);
   }
 }

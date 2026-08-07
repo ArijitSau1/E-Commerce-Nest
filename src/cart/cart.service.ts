@@ -38,16 +38,14 @@ export class CartService {
     if (!product) throw new NotFoundException('Product not found!');
 
     if (product.status !== DefaultStatus.ACTIVE) {
-  throw new BadRequestException(
-    'Product is no longer available.',
-  );
-}
+      throw new BadRequestException('Product is no longer available.');
+    }
 
-if (dto.quantity > product.stock) {
-  throw new BadRequestException(
-    `Only ${product.stock} item(s) available in stock.`,
-  );
-}
+    if (dto.quantity > product.stock) {
+      throw new BadRequestException(
+        `Only ${product.stock} item(s) available in stock.`,
+      );
+    }
 
     let cart = await this.repo.findOne({
       where: {
@@ -60,19 +58,19 @@ if (dto.quantity > product.stock) {
       },
     });
 
-   if (cart) {
-  const totalQuantity = cart.quantity + dto.quantity;
+    if (cart) {
+      const totalQuantity = cart.quantity + dto.quantity;
 
-  if (totalQuantity > product.stock) {
-    throw new BadRequestException(
-      `Only ${product.stock} item(s) available in stock.`,
-    );
-  }
+      if (totalQuantity > product.stock) {
+        throw new BadRequestException(
+          `Only ${product.stock} item(s) available in stock.`,
+        );
+      }
 
-  cart.quantity = totalQuantity;
+      cart.quantity = totalQuantity;
 
-  return this.repo.save(cart);
-}
+      return this.repo.save(cart);
+    }
 
     cart = this.repo.create({
       account,
@@ -94,43 +92,43 @@ if (dto.quantity > product.stock) {
     });
   }
 
-  async update(id: string, dto: UpdateCartDto, accountId: string,) {
+  async update(id: string, dto: UpdateCartDto, accountId: string) {
     const cart = await this.repo.findOne({
-  where: {
-    id,
-    account: {
-      id: accountId,
-    },
-  },
-  relations: {
-    account: true,
-    product: true,
-  },
-});
+      where: {
+        id,
+        account: {
+          id: accountId,
+        },
+      },
+      relations: {
+        account: true,
+        product: true,
+      },
+    });
 
     if (!cart) {
       throw new NotFoundException('Cart item not found!');
     }
 
     if (dto.quantity > cart.product.stock) {
-  throw new BadRequestException(
-    `Only ${cart.product.stock} item(s) available in stock.`,
-  );
-}
+      throw new BadRequestException(
+        `Only ${cart.product.stock} item(s) available in stock.`,
+      );
+    }
     cart.quantity = dto.quantity;
 
     return this.repo.save(cart);
   }
 
-  async remove(id: string, accountId: string,) {
+  async remove(id: string, accountId: string) {
     const cart = await this.repo.findOne({
-  where: {
-    id,
-    account: {
-      id: accountId,
-    },
-  },
-});
+      where: {
+        id,
+        account: {
+          id: accountId,
+        },
+      },
+    });
 
     if (!cart) {
       throw new NotFoundException('Cart item not found!');

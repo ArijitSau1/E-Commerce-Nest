@@ -56,10 +56,7 @@ export class ProductService {
       throw new NotFoundException('Brand not found!');
     }
 
-    const slug = dto.name
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-');
+    const slug = dto.name.toLowerCase().trim().replace(/\s+/g, '-');
 
     const obj = this.repo.create({
       name: dto.name,
@@ -92,12 +89,9 @@ export class ProductService {
 
     query.andWhere(
       new Brackets((qb) => {
-        qb.where(
-          'product.name LIKE :keyword OR product.slug LIKE :keyword',
-          {
-            keyword: `%${keyword}%`,
-          },
-        );
+        qb.where('product.name LIKE :keyword OR product.slug LIKE :keyword', {
+          keyword: `%${keyword}%`,
+        });
       }),
     );
 
@@ -135,10 +129,7 @@ export class ProductService {
     Object.assign(product, dto);
 
     if (dto.name) {
-      product.slug = dto.name
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-');
+      product.slug = dto.name.toLowerCase().trim().replace(/\s+/g, '-');
     }
 
     return this.repo.save(product);

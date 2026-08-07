@@ -1,4 +1,3 @@
-
 import { DefaultStatus } from 'src/enum';
 import {
   Column,
@@ -40,10 +39,10 @@ export class Brand {
   status: DefaultStatus;
 
   @Column({
-  type: 'uuid',
-  nullable: true,
-})
-createdBy: string;
+    type: 'uuid',
+    nullable: true,
+  })
+  createdBy: string;
 
   @CreateDateColumn()
   createdAt: Date;

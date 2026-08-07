@@ -15,10 +15,9 @@ import { CaslAbilityFactory } from './factory/casl-ability.factory';
 import { PermissionsGuard } from './guards/permissions.guard';
 import { MailModule } from 'src/mail/mail.module';
 
-
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Account,UserPermission]),
+    TypeOrmModule.forFeature([Account, UserPermission]),
     MailModule,
 
     PassportModule.register({
@@ -39,12 +38,21 @@ import { MailModule } from 'src/mail/mail.module';
 
   controllers: [AuthController],
 
-  providers: [AuthService, JwtStrategy, JwtAuthGuard,CaslAbilityFactory,
-  PermissionsGuard,],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtAuthGuard,
+    CaslAbilityFactory,
+    PermissionsGuard,
+  ],
 
-  exports: [AuthService,JwtStrategy,
-  PassportModule,
-  JwtModule,CaslAbilityFactory,
-  PermissionsGuard,],
+  exports: [
+    AuthService,
+    JwtStrategy,
+    PassportModule,
+    JwtModule,
+    CaslAbilityFactory,
+    PermissionsGuard,
+  ],
 })
 export class AuthModule {}

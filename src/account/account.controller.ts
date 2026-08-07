@@ -12,16 +12,9 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 @Controller('account')
 export class AccountController {
   @Get('test-permission')
-  @UseGuards(
-    JwtAuthGuard,
-    RolesGuard,
-    PermissionsGuard,
-  )
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.ADMIN)
-  @CheckPermissions([
-    PermissionAction.READ,
-    'category',
-  ])
+  @CheckPermissions([PermissionAction.READ, 'category'])
   testPermission() {
     return {
       message: 'Permission Granted',

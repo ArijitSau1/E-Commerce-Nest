@@ -22,10 +22,10 @@ export class MenuService {
     let menus: Menu[];
 
     if (cachedMenus) {
-         console.log('Fetching menus from cache...');
+      console.log('Fetching menus from cache...');
       menus = cachedMenus;
     } else {
-        console.log('Fetching menus from database...');
+      console.log('Fetching menus from database...');
       menus = await this.repo.find();
 
       await this.cacheManager.set('menus', menus, 0);

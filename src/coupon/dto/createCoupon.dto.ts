@@ -2,10 +2,17 @@ import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
+  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
+
+export enum CouponType {
+  PERCENTAGE = 'PERCENTAGE',
+  FIXED = 'FIXED',
+}
 
 export class CreateCouponDto {
   @IsString()
@@ -13,34 +20,32 @@ export class CreateCouponDto {
 
   @Type(() => Number)
   @IsNumber()
+  @Min(1)
   discount: number;
 
-  @IsString()
-  type: string;
+  @IsEnum(CouponType)
+  type: CouponType;
 
   @IsDateString()
   expiryDate: Date;
-}
 
-export class UpdateCouponDto {
-  @IsOptional()
-  @IsString()
-  code?: string;
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  minimumOrderAmount: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  maximumDiscount: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  discount?: number;
-
-  @IsOptional()
-  @IsString()
-  type?: string;
-
-  @IsOptional()
-  @IsDateString()
-  expiryDate?: Date;
+  @Min(1)
+  usageLimit?: number = 100;
 
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  firstOrderOnly?: boolean = false;
 }

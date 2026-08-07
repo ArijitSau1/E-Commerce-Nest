@@ -31,10 +31,7 @@ export class CategoryService {
       throw new ConflictException('Category already exists!');
     }
 
-    const slug = dto.name
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-');
+    const slug = dto.name.toLowerCase().trim().replace(/\s+/g, '-');
 
     const obj = this.repo.create({
       name: dto.name,
@@ -59,12 +56,9 @@ export class CategoryService {
 
     query.andWhere(
       new Brackets((qb) => {
-        qb.where(
-          'category.name LIKE :keyword OR category.slug LIKE :keyword',
-          {
-            keyword: `%${keyword}%`,
-          },
-        );
+        qb.where('category.name LIKE :keyword OR category.slug LIKE :keyword', {
+          keyword: `%${keyword}%`,
+        });
       }),
     );
 
@@ -97,10 +91,7 @@ export class CategoryService {
 
     if (dto.name) {
       category.name = dto.name;
-      category.slug = dto.name
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-');
+      category.slug = dto.name.toLowerCase().trim().replace(/\s+/g, '-');
     }
 
     if (dto.image !== undefined) {
