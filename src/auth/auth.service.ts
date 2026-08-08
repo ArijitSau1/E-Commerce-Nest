@@ -61,14 +61,16 @@ export class AuthService {
 
     const savedUser = await this.repo.save(obj);
 
-    try {
-      await this.mailService.sendWelcomeEmail(
-        savedUser.fullName,
-        savedUser.email,
-      );
-    } catch (error) {
-      console.log('Email sending failed:', error);
-    }
+   void (async () => {
+  try {
+    await this.mailService.sendWelcomeEmail(
+      savedUser.fullName,
+      savedUser.email,
+    );
+  } catch (error) {
+    console.error('Welcome email sending failed:', error);
+  }
+})();
 
     return {
       message: 'Registration successful',

@@ -188,24 +188,26 @@ export class OrderService {
         await this.couponService.increaseUsage(appliedCouponCode);
       }
 
-      try {
-        const invoice = await this.invoiceService.generateInvoiceBuffer(
-          savedOrder.id,
-        );
+      void (async () => {
+  try {
+    const invoice = await this.invoiceService.generateInvoiceBuffer(
+      savedOrder.id,
+    );
 
-        await this.mailService.sendOrderConfirmationEmail(
-          account.fullName,
-          account.email,
-          savedOrder.id,
-          totalAmount,
-          productHtml,
-          discountAmount,
-          finalAmount,
-          invoice,
-        );
-      } catch (error) {
-        console.error('Order email failed:', error);
-      }
+    await this.mailService.sendOrderConfirmationEmail(
+      account.fullName,
+      account.email,
+      savedOrder.id,
+      totalAmount,
+      productHtml,
+      discountAmount,
+      finalAmount,
+      invoice,
+    );
+  } catch (error) {
+    console.error('Order email failed:', error);
+  }
+})();
 
       return {
         message: 'Order placed successfully',
