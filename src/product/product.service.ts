@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
 
-import { DefaultStatus } from 'src/enum';
+import { DefaultStatus, ProductSort } from 'src/enum';
 import {
   CreateProductDto,
   PaginationDto,
@@ -74,38 +74,87 @@ export class ProductService {
   }
 
   async find(dto: PaginationDto) {
-    const keyword = dto.keyword || '';
+  const keyword = dto.keyword || '';
 
-    const query = this.repo.createQueryBuilder('product');
+  const query = this.repo
+    .createQueryBuilder('product')
+    .leftJoinAndSelect('product.category', 'category')
+    .leftJoinAndSelect('product.brand', 'brand');
 
-    query.leftJoinAndSelect('product.category', 'category');
-    query.leftJoinAndSelect('product.brand', 'brand');
-
-    if (dto.status) {
-      query.where('product.status = :status', {
-        status: dto.status,
-      });
-    }
-
-    query.andWhere(
-      new Brackets((qb) => {
-        qb.where('product.name LIKE :keyword OR product.slug LIKE :keyword', {
-          keyword: `%${keyword}%`,
-        });
-      }),
-    );
-
-    const [result, total] = await query
-      .orderBy('product.createdAt', 'DESC')
-      .skip(dto.offset)
-      .take(dto.limit)
-      .getManyAndCount();
-
-    return {
-      result,
-      total,
-    };
+  
+  if (dto.status) {
+    query.where('product.status = :status', {
+      status: dto.status,
+    });
   }
+
+  
+  query.andWhere(
+    new Brackets((qb) => {
+      qb.where(
+        'product.name LIKE :keyword OR product.slug LIKE :keyword',
+        {
+          keyword: `%${keyword}%`,
+        },
+      );
+    }),
+  );
+
+ 
+  if (dto.categoryId) {
+    query.andWhere('product.categoryId = :categoryId', {
+      categoryId: dto.categoryId,
+    });
+  }
+
+  
+  if (dto.brandId) {
+    query.andWhere('product.brandId = :brandId', {
+      brandId: dto.brandId,
+    });
+  }
+
+  
+  if (dto.minPrice !== undefined) {
+    query.andWhere('product.price >= :minPrice', {
+      minPrice: dto.minPrice,
+    });
+  }
+
+  
+  if (dto.maxPrice !== undefined) {
+    query.andWhere('product.price <= :maxPrice', {
+      maxPrice: dto.maxPrice,
+    });
+  }
+
+  
+  switch (dto.sort) {
+    case ProductSort.PRICE_ASC:
+      query.orderBy('product.price', 'ASC');
+      break;
+
+    case ProductSort.PRICE_DESC:
+      query.orderBy('product.price', 'DESC');
+      break;
+
+    case ProductSort.NEWEST:
+    default:
+      query.orderBy('product.createdAt', 'DESC');
+      break;
+  }
+
+  
+  const [result, total] = await query
+    .skip(dto.offset)
+    .take(dto.limit)
+    .getManyAndCount();
+
+  return {
+    result,
+    total,
+  };
+}
 
   async findOne(id: string) {
     const product = await this.repo.findOne({

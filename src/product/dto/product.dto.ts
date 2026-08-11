@@ -12,7 +12,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-import { DefaultStatus } from 'src/enum';
+import { DefaultStatus, ProductSort } from 'src/enum';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -82,15 +82,15 @@ export class PaginationDto {
   @IsNotEmpty()
   @Type(() => Number)
   @IsNumber()
-  @Min(10)
-  @Max(100)
-  limit: number;
+  @Min(0)
+  offset: number;
 
   @IsNotEmpty()
   @Type(() => Number)
   @IsNumber()
-  @Min(0)
-  offset: number;
+  @Min(1)
+  @Max(100)
+  limit: number;
 
   @IsOptional()
   @IsString()
@@ -100,6 +100,30 @@ export class PaginationDto {
   @IsOptional()
   @IsEnum(DefaultStatus)
   status?: DefaultStatus;
+
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
+
+  @IsOptional()
+  @IsString()
+  brandId?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  minPrice?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  maxPrice?: number;
+
+  @IsOptional()
+  @IsEnum(ProductSort)
+  sort?: ProductSort;
 }
 
 export class StatusDto {

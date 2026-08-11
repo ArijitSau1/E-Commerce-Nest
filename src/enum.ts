@@ -44,3 +44,30 @@ export enum PaymentStatus {
   FAILED = 'FAILED',
   REFUNDED = 'REFUNDED',
 }
+
+export enum ProductSort {
+  PRICE_ASC = 'price_asc',
+  PRICE_DESC = 'price_desc',
+  NEWEST = 'newest',
+}
+
+export enum ReturnType {
+  RETURN = 'return',
+  EXCHANGE = 'exchange',
+}
+
+export enum ReturnStatus {
+  REQUESTED = 'requested',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  PICKED_UP = 'picked_up',
+  RECEIVED = 'received',
+  REFUNDED = 'refunded',
+}
+
+export enum RefundStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+}

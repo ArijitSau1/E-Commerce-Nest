@@ -26,6 +26,8 @@ import { InvoiceModule } from './invoice/invoice.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ReturnService } from './return/return.service';
+import { ReturnModule } from './return/return.module';
 
 @Module({
   imports: [
@@ -79,6 +81,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
     MailModule,
     DashboardModule,
     InvoiceModule,
+    ReturnModule,
   ],
   controllers: [AppController],
   providers: [
@@ -87,6 +90,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    
   ],
 })
 export class AppModule {}

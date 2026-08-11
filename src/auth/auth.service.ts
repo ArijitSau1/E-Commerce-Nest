@@ -77,9 +77,7 @@ export class AuthService {
     };
   }
 
-  // ==========================
-  // Password Recovery
-  // ==========================
+
 
   async forgotPassword(dto: ForgotPasswordDto) {
     const account = await this.repo.findOne({

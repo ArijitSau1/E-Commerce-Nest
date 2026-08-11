@@ -48,7 +48,6 @@ export class ProductController {
   @Roles(UserRole.ADMIN)
   @CheckPermissions([PermissionAction.CREATE, 'product'])
   @ApiConsumes('multipart/form-data')
-  @ApiConsumes('multipart/form-data')
   @ApiBody({
     type: CreateProductWithImageDto,
   })
